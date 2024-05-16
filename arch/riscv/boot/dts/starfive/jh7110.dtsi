@@ -848,6 +848,7 @@
 				 <&syscrg JH7110_SYSRST_TEMP_APB>;
 			reset-names = "sense", "bus";
 			#thermal-sensor-cells = <0>;
+			status = "disabled";
 		};
 
 		qspi: spi@13010000 {

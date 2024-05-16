@@ -320,7 +320,7 @@
 &qspi {
 	#address-cells = <1>;
 	#size-cells = <0>;
-	status = "okay";
+	status = "disabled";
 
 	nor_flash: flash@0 {
 		compatible = "jedec,spi-nor";
