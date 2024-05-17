@@ -257,6 +257,22 @@
 				regulator-name = "vdd-cpu";
 			};
 
+			vdd33_io: dcdc6 {
+				regulator-boot-on;
+				regulator-always-on;
+				regulator-min-microvolt = <3300000>;
+				regulator-max-microvolt = <3300000>;
+				regulator-name = "vdd33_io";
+			};
+
+			vdd18v_io: bldo3 {
+				regulator-boot-on;
+				regulator-always-on;
+				regulator-min-microvolt = <1800000>;
+				regulator-max-microvolt = <1800000>;
+				regulator-name = "vdd18v_io";
+			};
+
 			emmc_vdd: aldo4 {
 				regulator-boot-on;
 				regulator-always-on;
@@ -320,7 +336,7 @@
 &qspi {
 	#address-cells = <1>;
 	#size-cells = <0>;
-	status = "disabled";
+	status = "okay";
 
 	nor_flash: flash@0 {
 		compatible = "jedec,spi-nor";
@@ -331,6 +347,7 @@
 		cdns,tsd2d-ns = <1>;
 		cdns,tchsh-ns = <1>;
 		cdns,tslch-ns = <1>;
+		status = "disabled";
 
 		partitions {
 			compatible = "fixed-partitions";
