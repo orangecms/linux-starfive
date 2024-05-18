@@ -265,12 +265,20 @@
 				regulator-name = "vdd33_io";
 			};
 
-			vdd18v_io: bldo3 {
+			vcc18_phy: bldo2 {
 				regulator-boot-on;
 				regulator-always-on;
 				regulator-min-microvolt = <1800000>;
 				regulator-max-microvolt = <1800000>;
-				regulator-name = "vdd18v_io";
+				regulator-name = "vcc18_phy";
+			};
+
+			vdd18_io: bldo3 {
+				regulator-boot-on;
+				regulator-always-on;
+				regulator-min-microvolt = <1800000>;
+				regulator-max-microvolt = <1800000>;
+				regulator-name = "vdd18_io";
 			};
 
 			emmc_vdd: aldo4 {

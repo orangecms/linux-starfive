@@ -7,8 +7,12 @@
  *
  */
 
+#include <linux/clk.h>
+#include <linux/of.h>
 #include <linux/mod_devicetable.h>
+#include <linux/phy.h>
 #include <linux/platform_device.h>
+#include <linux/regulator/consumer.h>
 #include <linux/property.h>
 #include <linux/mfd/syscon.h>
 #include <linux/regmap.h>
@@ -27,6 +31,7 @@ struct starfive_dwmac_data {
 
 struct starfive_dwmac {
 	struct device *dev;
+	struct regulator *regulator;
 	struct clk *clk_tx;
 	const struct starfive_dwmac_data *data;
 };
@@ -57,6 +62,26 @@ static void starfive_dwmac_fix_mac_speed(void *priv, unsigned int speed, unsigne
 	err = clk_set_rate(dwmac->clk_tx, rate);
 	if (err)
 		dev_err(dwmac->dev, "failed to set tx rate %lu\n", rate);
+}
+
+// adapted from ./dwmac-rk.c
+static int phy_power_on(struct starfive_dwmac *dwmac, bool enable)
+{
+	struct regulator *ldo = dwmac->regulator;
+	int ret;
+	struct device *dev = dwmac->dev;
+
+	if (enable) {
+		ret = regulator_enable(ldo);
+		if (ret)
+			dev_err(dev, "fail to enable phy-supply\n");
+	} else {
+		ret = regulator_disable(ldo);
+		if (ret)
+			dev_err(dev, "fail to disable phy-supply\n");
+	}
+
+	return 0;
 }
 
 static int starfive_dwmac_set_mode(struct plat_stmmacenet_data *plat_dat)
@@ -90,6 +115,13 @@ static int starfive_dwmac_set_mode(struct plat_stmmacenet_data *plat_dat)
 						      2, args);
 	if (IS_ERR(regmap))
 		return dev_err_probe(dwmac->dev, PTR_ERR(regmap), "getting the regmap failed\n");
+
+	dwmac->regulator = devm_regulator_get(dwmac->dev, "phy");
+	if (IS_ERR(dwmac->regulator)) {
+		return dev_err_probe(dwmac->dev, PTR_ERR(dwmac->regulator), "failed to get phy regulator\n");
+	}
+
+	err = phy_power_on(dwmac, true);
 
 	/* args[0]:offset  args[1]: shift */
 	err = regmap_update_bits(regmap, args[0],

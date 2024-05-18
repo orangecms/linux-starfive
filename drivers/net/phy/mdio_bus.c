@@ -889,9 +889,11 @@ int __mdiobus_read(struct mii_bus *bus, int addr, u32 regnum)
 
 	lockdep_assert_held_once(&bus->mdio_lock);
 
-	if (bus->read)
+	if (bus->read) {
+		printk("    MDIO bus read      read from bus %p @%u:%u\n", bus->read, addr, regnum);
 		retval = bus->read(bus, addr, regnum);
-	else
+		printk("YOLO");
+	} else
 		retval = -EOPNOTSUPP;
 
 	trace_mdio_access(bus, 1, addr, regnum, retval, retval);
