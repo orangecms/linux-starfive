@@ -13,6 +13,7 @@
 #include <linux/mutex.h>
 #include <linux/of.h>
 #include <linux/platform_device.h>
+#include <linux/regulator/consumer.h>
 #include <linux/reset.h>
 
 /*
@@ -52,6 +53,7 @@ struct sfctemp {
 	/* serialize access to hardware register and enabled below */
 	struct mutex lock;
 	void __iomem *regs;
+	struct regulator *regulator;
 	struct clk *clk_sense;
 	struct clk *clk_bus;
 	struct reset_control *rst_sense;
@@ -251,6 +253,20 @@ static const struct hwmon_chip_info sfctemp_chip_info = {
 	.info = sfctemp_info,
 };
 
+static int sensor_power_on(struct sfctemp *sfctemp, bool enable)
+{
+	int ret;
+	struct regulator *ldo = sfctemp->regulator;
+
+	if (enable) {
+		return regulator_enable(ldo);
+	} else {
+		return regulator_disable(ldo);
+	}
+
+	return 0;
+};
+
 static int sfctemp_probe(struct platform_device *pdev)
 {
 	struct device *dev = &pdev->dev;
@@ -264,6 +280,14 @@ static int sfctemp_probe(struct platform_device *pdev)
 
 	dev_set_drvdata(dev, sfctemp);
 	mutex_init(&sfctemp->lock);
+
+	sfctemp->regulator = devm_regulator_get(dev, "sensor");
+	if (IS_ERR(sfctemp->regulator)) {
+		return dev_err_probe(dev, PTR_ERR(sfctemp->regulator),
+				     "failed to get sensor regulator\n");
+	}
+
+	ret = sensor_power_on(sfctemp, true);
 
 	sfctemp->regs = devm_platform_ioremap_resource(pdev, 0);
 	if (IS_ERR(sfctemp->regs))

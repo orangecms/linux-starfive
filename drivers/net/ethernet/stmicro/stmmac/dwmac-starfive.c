@@ -122,6 +122,8 @@ static int starfive_dwmac_set_mode(struct plat_stmmacenet_data *plat_dat)
 	}
 
 	err = phy_power_on(dwmac, true);
+	if (err)
+		return dev_err_probe(dwmac->dev, err, "error powering phy on\n");
 
 	/* args[0]:offset  args[1]: shift */
 	err = regmap_update_bits(regmap, args[0],

@@ -265,6 +265,14 @@
 				regulator-name = "vdd33_io";
 			};
 
+			vdd18_top: bldo4 {
+				regulator-boot-on;
+				regulator-always-on;
+				regulator-min-microvolt = <1800000>;
+				regulator-max-microvolt = <1800000>;
+				regulator-name = "vdd18_top";
+			};
+
 			vcc18_phy: bldo2 {
 				regulator-boot-on;
 				regulator-always-on;

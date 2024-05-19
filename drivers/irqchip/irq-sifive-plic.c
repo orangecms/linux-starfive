@@ -361,6 +361,33 @@ static const struct irq_domain_ops plic_irqdomain_ops = {
 };
 
 /*
+ffffffff80289c7e <plic_handle_irq>:
+ffffffff80289c7e:       715d                    addi    sp,sp,-80
+ffffffff80289c80:       e0a2                    sd      s0,64(sp)
+ffffffff80289c82:       f84a                    sd      s2,48(sp)
+ffffffff80289c84:       f44e                    sd      s3,40(sp)
+ffffffff80289c86:       e486                    sd      ra,72(sp)
+ffffffff80289c88:       fc26                    sd      s1,56(sp)
+ffffffff80289c8a:       f052                    sd      s4,32(sp)
+ffffffff80289c8c:       ec56                    sd      s5,24(sp)
+ffffffff80289c8e:       e85a                    sd      s6,16(sp)
+ffffffff80289c90:       e45e                    sd      s7,8(sp)
+ffffffff80289c92:       e062                    sd      s8,0(sp)
+ffffffff80289c94:       0880                    addi    s0,sp,80
+ffffffff80289c96:       01012997                auipc   s3,0x1012
+ffffffff80289c9a:       cc298993                addi    s3,s3,-830 # ffffffff8129b958 <plic_handlers>
+ffffffff80289c9e:       0089b903                ld      s2,8(s3)
+ffffffff80289ca2:       0009c783                lbu     a5,0(s3)
+ffffffff80289ca6:       03053a83                ld      s5,48(a0)
+ffffffff80289caa:       0911                    addi    s2,s2,4
+                           # EBREAK here - showing NULL pointer dereference
+ffffffff80289cac:       c7d5                    beqz    a5,ffffffff80289d58 <plic_handle_irq+0xda>
+ffffffff80289cae:       048ab783                ld      a5,72(s5)
+ffffffff80289cb2:       01850a13                addi    s4,a0,24
+ffffffff80289cb6:       c3c9                    beqz    a5,ffffffff80289d38 <plic_handle_irq+0xba>
+ */
+
+/*
  * Handling an interrupt is a two-step process: first you claim the interrupt
  * by reading the claim register, then you complete the interrupt by writing
  * that source ID back to the same claim register.  This automatically enables
