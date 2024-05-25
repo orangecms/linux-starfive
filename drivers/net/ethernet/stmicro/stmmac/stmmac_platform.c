@@ -354,8 +354,10 @@ static int stmmac_mdio_setup(struct plat_stmmacenet_data *plat,
 	bool legacy_mdio;
 
 	plat->mdio_node = stmmac_of_get_mdio(np);
-	if (plat->mdio_node)
+	if (plat->mdio_node) {
 		dev_dbg(dev, "Found MDIO subnode\n");
+		printk("      STMMAC: Found MDIO subnode\n");
+	}
 
 	/* Legacy devicetrees allowed for no MDIO bus description and expect
 	 * the bus to be scanned for devices. If there's no phy or fixed-link
@@ -374,6 +376,7 @@ static int stmmac_mdio_setup(struct plat_stmmacenet_data *plat,
 			return -ENOMEM;
 
 		plat->mdio_bus_data->needs_reset = true;
+		printk("       MDIO bus needs reset\n");
 	}
 
 	return 0;

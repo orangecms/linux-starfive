@@ -13,17 +13,19 @@
 
 	chosen {
 		stdout-path = "serial0:115200n8";
-		bootargs = "earlycon console=ttyS0,115200 loglevel=8";
+		bootargs = "earlycon console=ttyS0,115200 loglevel=5";
 	};
 };
 
 &gmac0 {
+	// status = "disabled";
 	starfive,tx-use-rgmii-clk;
 	assigned-clocks = <&aoncrg JH7110_AONCLK_GMAC0_TX>;
 	assigned-clock-parents = <&aoncrg JH7110_AONCLK_GMAC0_RMII_RTX>;
 	mac-address = [ 46 43 4B 45 46 49 ];
 	// Power to the People, Hell Yea (um PHY)!
 	phy-supply = <&vcc18_phy>;
+	io-supply = <&vdd33_io>;
 };
 
 &gmac1 {
@@ -52,4 +54,32 @@
 	motorcomm,rx-data-drv-microamp = <2910>;
 	rx-internal-delay-ps = <300>;
 	tx-internal-delay-ps = <0>;
+};
+
+// save power
+&usb0 {
+	status = "disabled";
+};
+
+// oopses
+&crypto {
+	status = "disabled";
+};
+
+// hangs
+&sfctemp {
+	status = "disabled";
+};
+
+// hangs
+&qspi {
+	status = "disabled";
+};
+
+&mmc0 {
+	status = "disabled";
+};
+
+&mmc1 {
+	status = "disabled";
 };

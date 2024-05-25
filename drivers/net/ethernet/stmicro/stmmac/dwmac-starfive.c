@@ -68,8 +68,8 @@ static void starfive_dwmac_fix_mac_speed(void *priv, unsigned int speed, unsigne
 static int phy_power_on(struct starfive_dwmac *dwmac, bool enable)
 {
 	struct regulator *ldo = dwmac->regulator;
-	int ret;
 	struct device *dev = dwmac->dev;
+	int ret;
 
 	if (enable) {
 		ret = regulator_enable(ldo);
@@ -101,6 +101,7 @@ static int starfive_dwmac_set_mode(struct plat_stmmacenet_data *plat_dat)
 	case PHY_INTERFACE_MODE_RGMII_ID:
 	case PHY_INTERFACE_MODE_RGMII_RXID:
 	case PHY_INTERFACE_MODE_RGMII_TXID:
+		printk("      DWMAC RGMII mode\n");
 		mode = STARFIVE_DWMAC_PHY_INFT_RGMII;
 		break;
 
@@ -118,12 +119,23 @@ static int starfive_dwmac_set_mode(struct plat_stmmacenet_data *plat_dat)
 
 	dwmac->regulator = devm_regulator_get(dwmac->dev, "phy");
 	if (IS_ERR(dwmac->regulator)) {
-		return dev_err_probe(dwmac->dev, PTR_ERR(dwmac->regulator), "failed to get phy regulator\n");
+		return dev_err_probe(dwmac->dev, PTR_ERR(dwmac->regulator), "failed to get PHY regulator\n");
 	}
 
 	err = phy_power_on(dwmac, true);
 	if (err)
 		return dev_err_probe(dwmac->dev, err, "error powering phy on\n");
+
+	dwmac->regulator = devm_regulator_get(dwmac->dev, "io");
+	if (IS_ERR(dwmac->regulator)) {
+		return dev_err_probe(dwmac->dev, PTR_ERR(dwmac->regulator), "failed to get IO regulator\n");
+	}
+
+	err = phy_power_on(dwmac, true);
+	if (err)
+		return dev_err_probe(dwmac->dev, err, "error powering phy on\n");
+
+	mdelay(10);
 
 	/* args[0]:offset  args[1]: shift */
 	err = regmap_update_bits(regmap, args[0],
@@ -133,12 +145,15 @@ static int starfive_dwmac_set_mode(struct plat_stmmacenet_data *plat_dat)
 		return dev_err_probe(dwmac->dev, err, "error setting phy mode\n");
 
 	if (dwmac->data) {
+		printk("      DWMAC register delay chain\n");
 		err = regmap_write(regmap, JH7100_SYSMAIN_REGISTER49_DLYCHAIN,
 				   dwmac->data->gtxclk_dlychain);
 		if (err)
 			return dev_err_probe(dwmac->dev, err,
 					     "error selecting gtxclk delay chain\n");
 	}
+
+	printk("      DWMAC mode set done\n");
 
 	return 0;
 }

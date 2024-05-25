@@ -35,6 +35,22 @@
 		reg = <0x0 0x40000000 0x1 0x0>;
 	};
 
+
+	reserved-memory {
+		#address-cells = <2>;
+		#size-cells = <2>;
+		ranges;
+
+		linux,cma {
+			compatible = "shared-dma-pool";
+			reusable;
+			size = <0x0 0x20000000>;
+			alignment = <0x0 0x1000>;
+			alloc-ranges = <0x0 0x80000000 0x0 0x20000000>;
+			linux,cma-default;
+		};
+	};
+
 	gpio-restart {
 		compatible = "gpio-restart";
 		gpios = <&sysgpio 35 GPIO_ACTIVE_HIGH>;
@@ -265,14 +281,6 @@
 				regulator-name = "vdd33_io";
 			};
 
-			vdd18_top: bldo4 {
-				regulator-boot-on;
-				regulator-always-on;
-				regulator-min-microvolt = <1800000>;
-				regulator-max-microvolt = <1800000>;
-				regulator-name = "vdd18_top";
-			};
-
 			vcc18_phy: bldo2 {
 				regulator-boot-on;
 				regulator-always-on;
@@ -287,6 +295,14 @@
 				regulator-min-microvolt = <1800000>;
 				regulator-max-microvolt = <1800000>;
 				regulator-name = "vdd18_io";
+			};
+
+			vdd18_top: bldo4 {
+				regulator-boot-on;
+				regulator-always-on;
+				regulator-min-microvolt = <1800000>;
+				regulator-max-microvolt = <1800000>;
+				regulator-name = "vdd18_top";
 			};
 
 			emmc_vdd: aldo4 {
@@ -349,10 +365,17 @@
 	status = "okay";
 };
 
+&sfctemp {
+	// power supply: BLDO4
+	sensor-supply = <&vdd18_top>;
+};
+
 &qspi {
 	#address-cells = <1>;
 	#size-cells = <0>;
 	status = "okay";
+	// power supply: BLDO3
+	qspi-supply = <&vdd18_io>;
 
 	nor_flash: flash@0 {
 		compatible = "jedec,spi-nor";
