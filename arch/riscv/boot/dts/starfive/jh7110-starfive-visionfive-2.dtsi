@@ -386,7 +386,6 @@
 		cdns,tsd2d-ns = <1>;
 		cdns,tchsh-ns = <1>;
 		cdns,tslch-ns = <1>;
-		status = "disabled";
 
 		partitions {
 			compatible = "fixed-partitions";

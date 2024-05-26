@@ -66,16 +66,6 @@
 	status = "disabled";
 };
 
-// hangs
-&sfctemp {
-	status = "disabled";
-};
-
-// hangs
-&qspi {
-	status = "disabled";
-};
-
 &mmc0 {
 	status = "disabled";
 };
