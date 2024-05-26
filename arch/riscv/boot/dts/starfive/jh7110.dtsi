@@ -1010,7 +1010,8 @@
 			clock-names = "stmmaceth", "pclk", "ptp_ref",
 				      "tx",
 				      "noc",
-				      "gtx", "gtxc";
+				      "gtxc",
+				      "gtx";
 			resets = <&aoncrg JH7110_AONRST_GMAC0_AXI>,
 				 <&aoncrg JH7110_AONRST_GMAC0_AHB>;
 			reset-names = "stmmaceth", "ahb";

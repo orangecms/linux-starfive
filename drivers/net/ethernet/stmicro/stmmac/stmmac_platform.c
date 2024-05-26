@@ -627,6 +627,19 @@ stmmac_probe_config_dt(struct platform_device *pdev, u8 *mac)
 		clk_prepare_enable(plat->stmmac_clk);
 	}
 
+	plat->pclk = devm_clk_get_optional(&pdev->dev, "noc");
+	if (IS_ERR(plat->pclk)) {
+		ret = plat->pclk;
+		goto error_pclk_get;
+	}
+	clk_prepare_enable(plat->pclk);
+	plat->pclk = devm_clk_get_optional(&pdev->dev, "gtxc");
+	if (IS_ERR(plat->pclk)) {
+		ret = plat->pclk;
+		goto error_pclk_get;
+	}
+	clk_prepare_enable(plat->pclk);
+
 	plat->pclk = devm_clk_get_optional(&pdev->dev, "pclk");
 	if (IS_ERR(plat->pclk)) {
 		ret = plat->pclk;
