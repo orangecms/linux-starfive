@@ -29,12 +29,12 @@ SYM_CODE_START(riscv_kexec_relocate)
 	mv	s5, zero
 	mv	s6, zero
 
-	li	t7, a7
+	mv	t1, a7
 	li	a0, 'A'
 	li	a7, 0x01
 	ecall
-	li	a7, t7
-	li	a0, s0
+	mv	a7, t1
+	mv	a0, s0
 
 	/* Disable / cleanup interrupts */
 	csrw	CSR_SIE, zero
@@ -53,6 +53,13 @@ SYM_CODE_START(riscv_kexec_relocate)
 	sub	s6, s6, s4
 	csrw	CSR_STVEC, s6
 
+	mv	t1, a7
+	li	a0, 'B'
+	li	a7, 0x01
+	ecall
+	mv	a7, t1
+	mv	a0, s0
+
 	/*
 	 * With C-extension, here we get 42 Bytes and the next
 	 * .align directive would pad zeros here up to 44 Bytes.
@@ -63,8 +70,25 @@ SYM_CODE_START(riscv_kexec_relocate)
 	/* Process entries in a loop */
 .align 2
 1:
+	mv	t3, a7
+	li	a0, 'C'
+	li	a7, 0x01
+	ecall
+	andi    a0, s0, 0x3 # last two digits should be 0 for 4-byte alignment
+	addi    a0, a0, 0x30
+	ecall
+	mv	a7, t3
+
 	REG_L	t0, 0(s0)		/* t0 = *image->entry */
 	addi	s0, s0, RISCV_SZPTR	/* image->entry++ */
+
+	mv	t3, a7
+	li	a0, 'D'
+	li	a7, 0x01
+	ecall
+	mv	a7, t3
+
+	// WE GET HERE
 
 	/* IND_DESTINATION entry ? -> save destination address */
 	andi	t1, t0, 0x1
@@ -81,12 +105,23 @@ SYM_CODE_START(riscv_kexec_relocate)
 	jr	s6
 
 2:
+	mv	t1, a7
+	li	a0, 'E'
+	li	a7, 0x01
+	ecall
+	mv	a7, t1
 	/* IND_DONE entry ? -> jump to done label */
 	andi	t1, t0, 0x4
 	beqz	t1, 2f
 	j	4f
 
 2:
+	mv	t1, a7
+	li	a0, 'F'
+	li	a7, 0x01
+	ecall
+	mv	a7, t1
+
 	/*
 	 * IND_SOURCE entry ? -> copy page word by word to the
 	 * destination address we got from IND_DESTINATION
@@ -105,6 +140,12 @@ SYM_CODE_START(riscv_kexec_relocate)
 	j	3b
 
 4:
+	mv	t1, a7
+	li	a0, 'X'
+	li	a7, 0x01
+	ecall
+	mv	a7, t1
+
 	/* Pass the arguments to the next kernel  / Cleanup*/
 	mv	a0, s3
 	mv	a1, s2
