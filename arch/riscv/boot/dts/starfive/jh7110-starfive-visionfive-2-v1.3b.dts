@@ -56,6 +56,10 @@
 	tx-internal-delay-ps = <0>;
 };
 
+&timer {
+	status = "disabled";
+};
+
 // save power
 &usb0 {
 	status = "disabled";

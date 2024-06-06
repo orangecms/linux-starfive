@@ -915,7 +915,7 @@
 			#gpio-cells = <2>;
 		};
 
-		timer@13050000 {
+		timer: timer@13050000 {
 			compatible = "starfive,jh7110-timer";
 			reg = <0x0 0x13050000 0x0 0x10000>;
 			interrupts = <69>, <70>, <71> ,<72>;
