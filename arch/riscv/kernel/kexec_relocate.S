@@ -69,6 +69,7 @@ SYM_CODE_START(riscv_kexec_relocate)
 
 	/* Process entries in a loop */
 .align 2
+// This is the new STVEC
 1:
 	mv	t3, a7
 	li	a0, 'C'
@@ -97,16 +98,22 @@ SYM_CODE_START(riscv_kexec_relocate)
 	j	1b
 
 2:
+	mv	t1, a7
+	li	a0, 'E'
+	li	a7, 0x01
+	ecall
+	mv	a7, t1
 	/* IND_INDIRECTION entry ? -> update next entry ptr (PA) */
 	andi	t1, t0, 0x2
 	beqz	t1, 2f
 	andi	s0, t0, ~0x2
 	csrw	CSR_SATP, zero
+	# "jump register" - jump to address in s6
 	jr	s6
 
 2:
 	mv	t1, a7
-	li	a0, 'E'
+	li	a0, 'F'
 	li	a7, 0x01
 	ecall
 	mv	a7, t1
@@ -117,7 +124,7 @@ SYM_CODE_START(riscv_kexec_relocate)
 
 2:
 	mv	t1, a7
-	li	a0, 'F'
+	li	a0, 'G'
 	li	a7, 0x01
 	ecall
 	mv	a7, t1
