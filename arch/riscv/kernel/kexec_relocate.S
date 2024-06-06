@@ -29,6 +29,13 @@ SYM_CODE_START(riscv_kexec_relocate)
 	mv	s5, zero
 	mv	s6, zero
 
+	li	t7, a7
+	li	a0, 'A'
+	li	a7, 0x01
+	ecall
+	li	a7, t7
+	li	a0, s0
+
 	/* Disable / cleanup interrupts */
 	csrw	CSR_SIE, zero
 	csrw	CSR_SIP, zero
