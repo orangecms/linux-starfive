@@ -69,7 +69,7 @@ SYM_CODE_START(riscv_kexec_relocate)
 
 	/* Process entries in a loop */
 .align 2
-// This is the new STVEC
+// This is the new STVEC - via s6
 1:
 	mv	t3, a7
 	li	a0, 'C'
@@ -89,8 +89,6 @@ SYM_CODE_START(riscv_kexec_relocate)
 	ecall
 	mv	a7, t3
 
-	// WE GET HERE
-
 	/* IND_DESTINATION entry ? -> save destination address */
 	andi	t1, t0, 0x1
 	beqz	t1, 2f
@@ -103,13 +101,85 @@ SYM_CODE_START(riscv_kexec_relocate)
 	li	a7, 0x01
 	ecall
 	mv	a7, t1
+
 	/* IND_INDIRECTION entry ? -> update next entry ptr (PA) */
-	andi	t1, t0, 0x2
+	andi	t1, t0, 0x2 // t0 = 0x118604002
 	beqz	t1, 2f
-	andi	s0, t0, ~0x2
-	csrw	CSR_SATP, zero
-	# "jump register" - jump to address in s6
-	jr	s6
+	andi	s0, t0, ~0x2 // drop bit 2 -> s0 = 0x118604000
+
+	mv	t3, a7
+	li	a0, 'a'
+	li	a7, 0x01
+	ecall
+	mv	a7, t3
+
+	/* dump current machine state */
+	mv	t1, a7
+	mv	t2, a6
+	li	a7, 0x0A023B00
+	li	a6, 0x53544154 // STAT
+	ecall
+	mv	a7, t1
+	mv	a6, t2
+
+	/* dump new STVEC */
+	/* include the previus 32 bytes for orientation */
+	/*
+	mv	a0, s6
+	addi	a0, s6, -0x20
+	li	a1, 0x100
+	li	a7, 0x0A023B00
+	li	a6, 0x44554D50 // DUMP
+	ecall
+	mv	a7, t1
+	mv	a6, t2
+	mv	a1, s1
+	*/
+
+	/* dump SATP */
+	/*
+	csrr	a0, CSR_SATP
+	li	a7, 0x0A023B00
+	li	a6, 0x44484558 // DHEX (dump hex)
+	ecall
+	*/
+
+	/* dump root page table */
+	/*
+	csrr	a0, CSR_SATP
+	slli	a0, a0, 20
+	srli	a0, a0, 8
+	li	a1, 0x1000
+	li	a7, 0x0A023B00
+	li	a6, 0x44554D50 // DUMP
+	ecall
+	*/
+	/*
+	li	a0, 0
+	li	a1, 0
+	li	a7, 0x0A023B00
+	li	a6, 0x54524150 // TRAP (delegate nothing)
+	ecall
+	*/
+
+	/* Does this help? */
+	fence.i
+	/*
+	 * Turn off the MMU by clearing the SATP CSR
+	 * (supervisor address translation and protection)
+	 */
+	csrw	CSR_SATP, zero // HERE WE CRASH
+
+	/*
+	mv	t3, a7 // instruction fault @ ffffffff80c001f6
+	li	a0, 'b'
+	li	a7, 0x01
+	ecall
+	mv	a7, t3
+	*/
+
+	/* "jump register" - jump to address in s6 (STVEC) */
+	jr	s6 // 0x11860104c
 
 2:
 	mv	t1, a7
