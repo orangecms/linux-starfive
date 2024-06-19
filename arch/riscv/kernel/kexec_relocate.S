@@ -29,13 +29,6 @@ SYM_CODE_START(riscv_kexec_relocate)
 	mv	s5, zero
 	mv	s6, zero
 
-	mv	t1, a7
-	li	a0, 'A'
-	li	a7, 0x01
-	ecall
-	mv	a7, t1
-	mv	a0, s0
-
 	/* Disable / cleanup interrupts */
 	csrw	CSR_SIE, zero
 	csrw	CSR_SIP, zero
@@ -53,13 +46,6 @@ SYM_CODE_START(riscv_kexec_relocate)
 	sub	s6, s6, s4
 	csrw	CSR_STVEC, s6
 
-	mv	t1, a7
-	li	a0, 'B'
-	li	a7, 0x01
-	ecall
-	mv	a7, t1
-	mv	a0, s0
-
 	/*
 	 * With C-extension, here we get 42 Bytes and the next
 	 * .align directive would pad zeros here up to 44 Bytes.
@@ -71,23 +57,8 @@ SYM_CODE_START(riscv_kexec_relocate)
 .align 2
 // This is the new STVEC - via s6
 1:
-	mv	t3, a7
-	li	a0, 'C'
-	li	a7, 0x01
-	ecall
-	andi    a0, s0, 0x3 # last two digits should be 0 for 4-byte alignment
-	addi    a0, a0, 0x30
-	ecall
-	mv	a7, t3
-
 	REG_L	t0, 0(s0)		/* t0 = *image->entry */
 	addi	s0, s0, RISCV_SZPTR	/* image->entry++ */
-
-	mv	t3, a7
-	li	a0, 'D'
-	li	a7, 0x01
-	ecall
-	mv	a7, t3
 
 	/* IND_DESTINATION entry ? -> save destination address */
 	andi	t1, t0, 0x1
@@ -96,109 +67,27 @@ SYM_CODE_START(riscv_kexec_relocate)
 	j	1b
 
 2:
-	mv	t1, a7
-	li	a0, 'E'
-	li	a7, 0x01
-	ecall
-	mv	a7, t1
-
 	/* IND_INDIRECTION entry ? -> update next entry ptr (PA) */
-	andi	t1, t0, 0x2 // t0 = 0x118604002
+	andi	t1, t0, 0x2
 	beqz	t1, 2f
-	andi	s0, t0, ~0x2 // drop bit 2 -> s0 = 0x118604000
+	andi	s0, t0, ~0x2
 
-	mv	t3, a7
-	li	a0, 'a'
-	li	a7, 0x01
-	ecall
-	mv	a7, t3
-
-	/* dump current machine state */
-	mv	t1, a7
-	mv	t2, a6
-	li	a7, 0x0A023B00
-	li	a6, 0x53544154 // STAT
-	ecall
-	mv	a7, t1
-	mv	a6, t2
-
-	/* dump new STVEC */
-	/* include the previus 32 bytes for orientation */
-	/*
-	mv	a0, s6
-	addi	a0, s6, -0x20
-	li	a1, 0x100
-	li	a7, 0x0A023B00
-	li	a6, 0x44554D50 // DUMP
-	ecall
-	mv	a7, t1
-	mv	a6, t2
-	mv	a1, s1
-	*/
-
-	/* dump SATP */
-	/*
-	csrr	a0, CSR_SATP
-	li	a7, 0x0A023B00
-	li	a6, 0x44484558 // DHEX (dump hex)
-	ecall
-	*/
-
-	/* dump root page table */
-	/*
-	csrr	a0, CSR_SATP
-	slli	a0, a0, 20
-	srli	a0, a0, 8
-	li	a1, 0x1000
-	li	a7, 0x0A023B00
-	li	a6, 0x44554D50 // DUMP
-	ecall
-	*/
-	/*
-	li	a0, 0
-	li	a1, 0
-	li	a7, 0x0A023B00
-	li	a6, 0x54524150 // TRAP (delegate nothing)
-	ecall
-	*/
-
-	/* Does this help? */
-	fence.i
 	/*
 	 * Turn off the MMU by clearing the SATP CSR
 	 * (supervisor address translation and protection)
 	 */
-	csrw	CSR_SATP, zero // HERE WE CRASH
-
-	/*
-	mv	t3, a7 // instruction fault @ ffffffff80c001f6
-	li	a0, 'b'
-	li	a7, 0x01
-	ecall
-	mv	a7, t3
-	*/
+	csrw	CSR_SATP, zero
 
 	/* "jump register" - jump to address in s6 (STVEC) */
-	jr	s6 // 0x11860104c
+	jr	s6
 
 2:
-	mv	t1, a7
-	li	a0, 'F'
-	li	a7, 0x01
-	ecall
-	mv	a7, t1
 	/* IND_DONE entry ? -> jump to done label */
 	andi	t1, t0, 0x4
 	beqz	t1, 2f
 	j	4f
 
 2:
-	mv	t1, a7
-	li	a0, 'G'
-	li	a7, 0x01
-	ecall
-	mv	a7, t1
-
 	/*
 	 * IND_SOURCE entry ? -> copy page word by word to the
 	 * destination address we got from IND_DESTINATION
@@ -217,12 +106,6 @@ SYM_CODE_START(riscv_kexec_relocate)
 	j	3b
 
 4:
-	mv	t1, a7
-	li	a0, 'X'
-	li	a7, 0x01
-	ecall
-	mv	a7, t1
-
 	/* Pass the arguments to the next kernel  / Cleanup*/
 	mv	a0, s3
 	mv	a1, s2
