@@ -870,7 +870,6 @@
 			status = "disabled";
 		};
 
-		// HERE
 		syscrg: clock-controller@13020000 {
 			compatible = "starfive,jh7110-syscrg";
 			reg = <0x0 0x13020000 0x0 0x10000>;
