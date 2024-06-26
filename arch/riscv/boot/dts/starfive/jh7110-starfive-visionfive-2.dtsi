@@ -50,7 +50,24 @@
 			alloc-ranges = <0x0 0x80000000 0x0 0x20000000>;
 			linux,cma-default;
 		};
+
+		flash_reserved: flash@21000000 {
+			reg = <0x0 0x21000000 0x0 0x1000000>;
+		};
 	};
+
+	/*
+	flash@21000000 {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		compatible = "cfi-flash", "jedec-flash";
+		reg = <0x0 0x21000000 0x0 0x1000000>;
+		partition@0 {
+			label = "oreboot";
+			reg = <0 0x60000>;
+		};
+	};
+	*/
 
 	gpio-restart {
 		compatible = "gpio-restart";
