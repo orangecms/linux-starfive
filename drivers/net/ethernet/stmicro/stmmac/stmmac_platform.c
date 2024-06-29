@@ -354,10 +354,8 @@ static int stmmac_mdio_setup(struct plat_stmmacenet_data *plat,
 	bool legacy_mdio;
 
 	plat->mdio_node = stmmac_of_get_mdio(np);
-	if (plat->mdio_node) {
+	if (plat->mdio_node)
 		dev_dbg(dev, "Found MDIO subnode\n");
-		printk("      STMMAC: Found MDIO subnode\n");
-	}
 
 	/* Legacy devicetrees allowed for no MDIO bus description and expect
 	 * the bus to be scanned for devices. If there's no phy or fixed-link
@@ -376,7 +374,6 @@ static int stmmac_mdio_setup(struct plat_stmmacenet_data *plat,
 			return -ENOMEM;
 
 		plat->mdio_bus_data->needs_reset = true;
-		printk("       MDIO bus needs reset\n");
 	}
 
 	return 0;
@@ -627,19 +624,6 @@ stmmac_probe_config_dt(struct platform_device *pdev, u8 *mac)
 		clk_prepare_enable(plat->stmmac_clk);
 	}
 
-	plat->pclk = devm_clk_get_optional(&pdev->dev, "noc");
-	if (IS_ERR(plat->pclk)) {
-		ret = plat->pclk;
-		goto error_pclk_get;
-	}
-	clk_prepare_enable(plat->pclk);
-	plat->pclk = devm_clk_get_optional(&pdev->dev, "gtxc");
-	if (IS_ERR(plat->pclk)) {
-		ret = plat->pclk;
-		goto error_pclk_get;
-	}
-	clk_prepare_enable(plat->pclk);
-
 	plat->pclk = devm_clk_get_optional(&pdev->dev, "pclk");
 	if (IS_ERR(plat->pclk)) {
 		ret = plat->pclk;
@@ -768,8 +752,6 @@ int stmmac_get_platform_resources(struct platform_device *pdev,
 	}
 
 	stmmac_res->addr = devm_platform_ioremap_resource(pdev, 0);
-
-	printk("STMMAC pointer %p\n", stmmac_res->addr);
 
 	return PTR_ERR_OR_ZERO(stmmac_res->addr);
 }

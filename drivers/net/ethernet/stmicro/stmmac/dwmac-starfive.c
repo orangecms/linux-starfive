@@ -7,12 +7,8 @@
  *
  */
 
-#include <linux/clk.h>
-#include <linux/of.h>
 #include <linux/mod_devicetable.h>
-#include <linux/phy.h>
 #include <linux/platform_device.h>
-#include <linux/regulator/consumer.h>
 #include <linux/property.h>
 #include <linux/mfd/syscon.h>
 #include <linux/regmap.h>
@@ -31,7 +27,6 @@ struct starfive_dwmac_data {
 
 struct starfive_dwmac {
 	struct device *dev;
-	struct regulator *regulator;
 	struct clk *clk_tx;
 	const struct starfive_dwmac_data *data;
 };
@@ -64,26 +59,6 @@ static void starfive_dwmac_fix_mac_speed(void *priv, unsigned int speed, unsigne
 		dev_err(dwmac->dev, "failed to set tx rate %lu\n", rate);
 }
 
-// adapted from ./dwmac-rk.c
-static int phy_power_on(struct starfive_dwmac *dwmac, bool enable)
-{
-	struct regulator *ldo = dwmac->regulator;
-	struct device *dev = dwmac->dev;
-	int ret;
-
-	if (enable) {
-		ret = regulator_enable(ldo);
-		if (ret)
-			dev_err(dev, "fail to enable phy-supply\n");
-	} else {
-		ret = regulator_disable(ldo);
-		if (ret)
-			dev_err(dev, "fail to disable phy-supply\n");
-	}
-
-	return 0;
-}
-
 static int starfive_dwmac_set_mode(struct plat_stmmacenet_data *plat_dat)
 {
 	struct starfive_dwmac *dwmac = plat_dat->bsp_priv;
@@ -101,7 +76,6 @@ static int starfive_dwmac_set_mode(struct plat_stmmacenet_data *plat_dat)
 	case PHY_INTERFACE_MODE_RGMII_ID:
 	case PHY_INTERFACE_MODE_RGMII_RXID:
 	case PHY_INTERFACE_MODE_RGMII_TXID:
-		printk("      DWMAC RGMII mode\n");
 		mode = STARFIVE_DWMAC_PHY_INFT_RGMII;
 		break;
 
@@ -117,26 +91,6 @@ static int starfive_dwmac_set_mode(struct plat_stmmacenet_data *plat_dat)
 	if (IS_ERR(regmap))
 		return dev_err_probe(dwmac->dev, PTR_ERR(regmap), "getting the regmap failed\n");
 
-	dwmac->regulator = devm_regulator_get(dwmac->dev, "phy");
-	if (IS_ERR(dwmac->regulator)) {
-		return dev_err_probe(dwmac->dev, PTR_ERR(dwmac->regulator), "failed to get PHY regulator\n");
-	}
-
-	err = phy_power_on(dwmac, true);
-	if (err)
-		return dev_err_probe(dwmac->dev, err, "error powering phy on\n");
-
-	dwmac->regulator = devm_regulator_get(dwmac->dev, "io");
-	if (IS_ERR(dwmac->regulator)) {
-		return dev_err_probe(dwmac->dev, PTR_ERR(dwmac->regulator), "failed to get IO regulator\n");
-	}
-
-	err = phy_power_on(dwmac, true);
-	if (err)
-		return dev_err_probe(dwmac->dev, err, "error powering phy on\n");
-
-	mdelay(10);
-
 	/* args[0]:offset  args[1]: shift */
 	err = regmap_update_bits(regmap, args[0],
 				 STARFIVE_DWMAC_PHY_INFT_FIELD << args[1],
@@ -145,15 +99,12 @@ static int starfive_dwmac_set_mode(struct plat_stmmacenet_data *plat_dat)
 		return dev_err_probe(dwmac->dev, err, "error setting phy mode\n");
 
 	if (dwmac->data) {
-		printk("      DWMAC register delay chain\n");
 		err = regmap_write(regmap, JH7100_SYSMAIN_REGISTER49_DLYCHAIN,
 				   dwmac->data->gtxclk_dlychain);
 		if (err)
 			return dev_err_probe(dwmac->dev, err,
 					     "error selecting gtxclk delay chain\n");
 	}
-
-	printk("      DWMAC mode set done\n");
 
 	return 0;
 }
