@@ -24,7 +24,6 @@
 #include <linux/of.h>
 #include <linux/platform_device.h>
 #include <linux/pm_runtime.h>
-#include <linux/regulator/consumer.h>
 #include <linux/reset.h>
 #include <linux/sched.h>
 #include <linux/spi/spi.h>
@@ -71,7 +70,6 @@ struct cqspi_flash_pdata {
 struct cqspi_st {
 	struct platform_device	*pdev;
 	struct spi_controller	*host;
-	struct regulator        *regulator;
 	struct clk		*clk;
 	struct clk		*clks[CLK_QSPI_NUM];
 	unsigned int		sclk;
@@ -1708,26 +1706,6 @@ static void cqspi_jh7110_disable_clk(struct platform_device *pdev, struct cqspi_
 	clk_disable_unprepare(cqspi->clks[CLK_QSPI_AHB]);
 	clk_disable_unprepare(cqspi->clks[CLK_QSPI_APB]);
 }
-
-static int power_on(struct cqspi_st *cqspi, bool enable)
-{
-	struct regulator *ldo = cqspi->regulator;
-	struct device *dev = &cqspi->pdev->dev;
-	int ret;
-
-	if (enable) {
-		ret = regulator_enable(ldo);
-		if (ret)
-			dev_err(dev, "fail to enable cqspi supply\n");
-	} else {
-		ret = regulator_disable(ldo);
-		if (ret)
-			dev_err(dev, "fail to disable cqspi supply\n");
-	}
-
-	return 0;
-}
-
 static int cqspi_probe(struct platform_device *pdev)
 {
 	const struct cqspi_driver_platdata *ddata;
@@ -1752,7 +1730,6 @@ static int cqspi_probe(struct platform_device *pdev)
 
 	cqspi->pdev = pdev;
 	cqspi->host = host;
-	// LOL
 	cqspi->is_jh7110 = false;
 	platform_set_drvdata(pdev, cqspi);
 
@@ -1761,25 +1738,6 @@ static int cqspi_probe(struct platform_device *pdev)
 	if (ret) {
 		dev_err(dev, "Cannot get mandatory OF data.\n");
 		return -ENODEV;
-	}
-
-	/* Turn me on */
-	cqspi->regulator = devm_regulator_get(dev, "qspi");
-	if (IS_ERR(cqspi->regulator)) {
-		return dev_err_probe(
-			dev,
-			PTR_ERR(cqspi->regulator),
-			"failed to get IO regulator\n"
-		);
-	}
-
-	ret = power_on(cqspi, true);
-	if (ret) {
-		return dev_err_probe(
-			dev,
-			ret,
-			"error powering QSPI on\n"
-		);
 	}
 
 	/* Obtain QSPI clock. */
