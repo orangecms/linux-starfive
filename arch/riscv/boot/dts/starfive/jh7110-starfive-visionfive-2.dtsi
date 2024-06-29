@@ -375,18 +375,17 @@
 	#address-cells = <1>;
 	#size-cells = <0>;
 	status = "okay";
-	// power supply: BLDO3
-	qspi-supply = <&vdd18_io>;
 
 	nor_flash: flash@0 {
 		compatible = "jedec,spi-nor";
 		reg = <0>;
 		cdns,read-delay = <5>;
-		spi-max-frequency = <12000000>;
+		spi-max-frequency = <6000000>;
 		cdns,tshsl-ns = <1>;
 		cdns,tsd2d-ns = <1>;
 		cdns,tchsh-ns = <1>;
 		cdns,tslch-ns = <1>;
+		status = "okay";
 
 		partitions {
 			compatible = "fixed-partitions";
