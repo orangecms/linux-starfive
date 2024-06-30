@@ -50,18 +50,19 @@
 	tx-internal-delay-ps = <0>;
 };
 
+// just testing
 &timer {
-	status = "disabled";
-};
-
-// save power
-&usb0 {
 	status = "disabled";
 };
 
 // oopses
 &crypto {
 	status = "disabled";
+};
+
+// save power
+&usb0 {
+	status = "okay";
 };
 
 &mmc0 {

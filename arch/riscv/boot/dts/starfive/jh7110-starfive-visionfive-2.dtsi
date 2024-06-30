@@ -366,11 +366,6 @@
 	status = "okay";
 };
 
-&sfctemp {
-	// power supply: BLDO4
-	sensor-supply = <&vdd18_top>;
-};
-
 &qspi {
 	#address-cells = <1>;
 	#size-cells = <0>;
